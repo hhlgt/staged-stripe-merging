@@ -1,0 +1,137 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package coordinator_proto;
+
+// The greeting service definition.
+service coordinatorService {
+  // Sends a greeting
+  rpc sayHelloToCoordinator (RequestToCoordinator) returns (ReplyFromCoordinator) {};
+  rpc checkalive (RequestToCoordinator) returns (ReplyFromCoordinator) {};
+
+  // set parameters of metadata
+  rpc setParameter(Parameter) returns (RepIfSetParaSuccess) {};
+
+  // set
+  rpc uploadOriginKeyValue (RequestProxyIPPort) returns (ReplyProxyIPPort) {};
+  rpc reportCommitAbort (CommitAbortKey) returns (ReplyFromCoordinator) {}; //from proxy
+  rpc checkCommitAbort (AskIfSuccess) returns (RepIfSuccess) {};  //from client
+  // get
+  rpc getValue(KeyAndClientIP) returns (RepIfGetSuccess) {};
+  // delete
+  rpc delByKey(KeyFromClient) returns (RepIfDeling) {};
+  rpc delByStripe(StripeIdFromClient) returns (RepIfDeling) {};
+  // lrcwidestripe, merge
+  rpc requestMerge(NumberOfStripesToMerge) returns (RepIfMerged) {};
+
+  //other
+  rpc listStripes(RequestToCoordinator) returns (RepStripeIds) {};
+}
+
+message Parameter {
+  bool partial_decoding = 1;
+  int32 encodetype = 2;
+  int32 s_stripe_placementtype = 3;
+  int32 m_stripe_placementtype = 4;
+  int32 k_datablock = 5;
+  int32 l_localparityblock = 6;
+  int32 g_m_globalparityblock = 7;
+  int32 b_datapergroup = 8;
+  int32 x_stripepermergegroup = 9;
+}
+
+message RepIfSetParaSuccess {
+  bool ifsetparameter = 1;
+}
+
+// The request message containing the user's name.
+message RequestToCoordinator {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message ReplyFromCoordinator {
+  string message = 1;
+}
+
+// set
+message RequestProxyIPPort {
+  string key = 1;
+  int32 valuesizebytes = 2;
+}
+
+message ReplyProxyIPPort {
+  string proxyip = 1;
+  int32 proxyport = 2;
+}
+
+message CommitAbortKey {
+  string key = 1;
+  bool ifcommitmetadata = 2;
+  int32 opp = 3;
+  int32 stripe_id = 4;
+}
+
+// set, del, merge
+message AskIfSuccess {
+  string key = 1;
+  int32 opp = 2;
+  int32 stripe_id = 3;
+}
+
+message RepIfSuccess {
+  bool ifcommit = 1;
+}
+
+// get
+message KeyAndClientIP {
+  string key = 1;
+  string clientip = 2;
+  int32 clientport = 3;
+}
+message RepIfGetSuccess {
+  bool ifgetsuccess = 1;
+  int32 valuesizebytes = 2;
+}
+
+// delete
+message KeyFromClient {
+  string key = 1;
+}
+
+message StripeIdFromClient {
+  int32 stripe_id = 1;
+}
+
+message RepIfDeling {
+  bool ifdeling = 1;
+}
+
+// merge
+message NumberOfStripesToMerge {
+  int32 num_of_stripes = 1;
+}
+
+message RepIfMerged {
+  bool ifmerged = 1;
+  double lc = 2;
+  double gc = 3;
+  double dc = 4;
+}
+
+message RepStripeIds {
+  repeated int32 stripe_ids = 1;
+}

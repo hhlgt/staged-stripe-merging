@@ -1,0 +1,152 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package proxy_proto;
+
+// The greeting service definition.
+service proxyService {
+  // Sends a greeting
+  rpc checkalive (CheckaliveCMD) returns (RequestResult);
+
+  // encode and set
+  rpc encodeAndSetObject(ObjectAndPlacement) returns (SetReply);
+  // get and decode
+  rpc decodeAndGetObject(ObjectAndPlacement) returns (GetReply);
+  // delete
+  rpc deleteBlock(NodeAndBlock) returns (DelReply);
+
+  // lrcwidestripe, merge
+  // parity block recalculation
+  rpc mainRecal(mainRecalPlan) returns (RecalReply);
+  rpc helpRecal(helpRecalPlan) returns (RecalReply);
+  // block relocation
+  rpc blockReloc(blockRelocPlan) returns (blockRelocReply);
+
+  rpc checkStep(AskIfSuccess) returns (RepIfSuccess);
+}
+
+// lrcwidestripe, merge
+// parity block recalculation
+message locationInfo {
+  int32 cluster_id = 1;
+  string proxy_ip = 2;
+  int32 proxy_port = 3;
+  repeated string datanodeip = 4;
+  repeated int32 datanodeport = 5;
+  repeated string blockkeys = 6;
+  repeated int32 blockids = 7;
+}
+
+message mainRecalPlan {
+  bool type = 1;  // to distinguish local and global
+  bool if_partial_decoding = 2;
+  repeated locationInfo clusters = 3;
+  repeated string p_datanodeip = 4;
+  repeated int32 p_datanodeport = 5;
+  repeated string p_blockkeys = 6;
+  int32 k = 7;
+  int32 l = 8;
+  int32 g_m = 9;
+  int32 block_size = 10;
+  int32 encodetype = 11;
+  int32 stripe_id = 12;
+  int32 group_id = 13;
+}
+
+message RecalReply {
+  string result = 1;
+}
+
+message helpRecalPlan {
+  bool type = 1;
+  bool if_partial_decoding = 2;
+  string mainproxyip = 3;
+  int32 mainproxyport = 4;
+  repeated string datanodeip = 5;
+  repeated int32 datanodeport = 6;
+  repeated string blockkeys = 7;
+  int32 block_size = 8;
+  repeated int32 blockids = 9;
+  int32 parity_num = 10;
+}
+
+// block relocation
+message blockRelocPlan {
+  repeated string blocktomove = 1;
+  repeated string fromdatanodeip = 2;
+  repeated int32 fromdatanodeport = 3;
+  repeated string todatanodeip = 4;
+  repeated int32 todatanodeport = 5;
+  int32 block_size = 6;
+}
+
+message blockRelocReply {
+  string result = 1;
+}
+
+message AskIfSuccess {
+  int32 step = 1;
+}
+
+message RepIfSuccess {
+  bool ifsuccess = 1;
+}
+
+// delete
+message NodeAndBlock {
+  repeated string blockkeys = 1;
+  repeated string datanodeip = 2;
+  repeated int32 datanodeport = 3;
+  int32 stripe_id = 4;
+  string key = 5;
+}
+
+message DelReply {
+  bool ifcommit = 1;
+}
+
+// The request message containing the user's name.
+message CheckaliveCMD {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message RequestResult {
+  bool message = 1;
+}
+
+// set and get
+message ObjectAndPlacement{
+  string key = 1;
+  int32 valuesizebyte = 2;
+  int32 k = 3;
+  int32 l = 4;
+  int32 g_m = 5;
+  int32 stripe_id = 6;
+  repeated string datanodeip = 7;
+  repeated int32 datanodeport = 8;
+  repeated string blockkeys = 9;
+  int32 block_size = 10;
+  int32 encode_type = 11;
+  string clientip = 12;
+  int32 clientport = 13;
+}
+message SetReply {
+  bool ifcommit = 1;
+}
+message GetReply {
+  bool getsuccess = 1;
+}
